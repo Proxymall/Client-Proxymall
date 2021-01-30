@@ -1,0 +1,11 @@
+fastapi[all]
+sqlalchemy
+peewee
+python-jose[cryptography]
+passlib[bcrypt]
+fastapi-login
+mysql-connector
+authlib
+httpx
+itsdangerous
+python-multipart
