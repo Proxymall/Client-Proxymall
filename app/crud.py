@@ -7,47 +7,47 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ================ TypeUser start ================ #
-def get_type_user(db: Session, type_user_id: int):
-    return db.query(models.TypeUser).filter(models.User.id == type_user_id).first()
+def get_type_user(type_user_id: int):
+    return models.TypeUser.filter(models.TypeUser.id == type_user_id).first()
 
 
-def get_type_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.TypeUser).offset(skip).limit(limit).all()
+def get_type_users(skip: int = 0, limit: int = 100):
+    return list(models.TypeUser.select().offset(skip).limit(limit))
 
 
-def create_type_user(db: Session, type_user: schemas.TypeUserBase):
-    db_type_user = models.TypeUser(libelle= type_user.libelle)
-    db.add(db_type_user)
-    db.commit()
-    db.refresh(db_type_user)
+def create_type_user(type_user: schemas.TypeUserBase):
+    db_type_user = models.TypeUser(**type_user.dict())
+    db_type_user.save()
     return db_type_user
 
-def delete_type_user(db: Session, type_user_id):
-    db_type_user = get_type_user(db, type_user_id)
-    db.delete(db_type_user)
-    db.commit()
-    return {"status": 200, "detail": "Suppression effectuée"}
-# # ================ TypeUser start ================ #
+def delete_type_user(type_user_id):
+    n = models.TypeUser.delete_by_id(type_user_id)
+    if (n>0):
+        return {"status": 200, "detail": "Suppression effectuée"}
+    return {"status": 500, "detail": "Aucune suppression n'a été effectuée"}
+# ================ TypeUser start ================ #
 
 
 
 # ================ User start ================ #
-def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+def get_user(user_id: int):
+    return models.User.filter(models.User.id == user_id).first()
+    return models.User.filter(models.User.id == user_id).first()
 
 
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+def get_user_by_email(email: str):
+    return models.User.filter(models.User.email == email).first()
 
-def get_user_by_username(db: Session, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
-
-
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
+def get_user_by_username(username: str):
+    return models.User.filter(models.User.username == username).first()
 
 
-def create_user(db: Session, user: schemas.UserBase):
+def get_users(skip: int = 0, limit: int = 100):
+    return list(models.User.select().offset(skip).limit(limit))
+    # return models.User.select().offset(skip).limit(limit)
+
+
+def create_user(user: schemas.UserBase):
     password = pwd_context.hash(user.password)
 
     db_user = models.User(
@@ -58,51 +58,47 @@ def create_user(db: Session, user: schemas.UserBase):
         hashed_password=password,
         column=user.column
     )
-    db.add(db_user)
-    db.commit() 
-    db.refresh(db_user)
+
+    db_user.save()
     return db_user
 
-def delete_user(db: Session, user_id):
-    db_user = get_user(db, user_id)
-    db.delete(db_user)
-    db.commit()
-    return {"status": 200, "detail": "Suppression effectuée"}
+def delete_user(user_id):
+    n = models.User.delete_by_id(user_id)
+    if (n>0):
+        return {"status": 200, "detail": "Suppression effectuée"}
+    return {"status": 500, "detail": "Aucune suppression n'a été effectuée"}
 # ================ User start ================ #
 
 
 
 # ================ Category start ================ #
-def get_category(db: Session, category_id: int):
-    return db.query(models.Category).filter(models.User.id == category_id).first()
+def get_category(category_id: int):
+    return models.Category.filter(models.User.id == category_id).first()
 
 
-def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Category).offset(skip).limit(limit).all()
+def get_categories(skip: int = 0, limit: int = 100):
+    return list(models.Category.select().offset(skip).limit(limit))
 
 
-def create_category(db: Session, category: schemas.CategoryBase):
+def create_category(category: schemas.CategoryBase):
     db_category = models.Category(
         title = category.title,
         description = category.description
     )
-    db.add(db_category)
-    db.commit()
-    db.refresh(db_category)
+    db_category.save()
     return db_category
 
-def delete_category(db: Session, category_id):
-    db_category = get_category(db, category_id)
-    db.delete(db_category)
-    db.commit()
-    return {"status": 200, "detail": "Suppression effectuée"}
+def delete_category(category_id):
+    n = models.Category.delete_by_id(category_id)
+    if (n>0):
+        return {"status": 200, "detail": "Suppression effectuée"}
+    return {"status": 500, "detail": "Aucune suppression n'a été effectuée"}
 # # ================ Category start ================ #
 
 
 
 # ================ Boutique start ================ #
-def create_boutique(db: Session, boutique: schemas.UserBase):
-    fake_hashed_password = boutique.password + "notreallyhashed"
+def create_boutique(boutique: schemas.BoutiqueBase):
     db_boutique = models.TypeUser(
         name = boutique.name,
         slogan = boutique.slogan, 
@@ -110,39 +106,35 @@ def create_boutique(db: Session, boutique: schemas.UserBase):
         registration_date = boutique.registration_date,
         category_id = boutique.category_id
     )
-    db.add(db_boutique)
-    db.commit()
-    db.refresh(db_boutique)
+    db_boutique.save()
     return db_boutique
 
 
-def create_user_boutique(db: Session, boutique: schemas.BoutiqueBase, user_id: int):
+def create_user_boutique(boutique: schemas.BoutiqueBase, user_id: int):
     db_boutique = models.Boutique(**boutique.dict(), owner_id=user_id)
-    db.add(db_boutique)
-    db.commit()
-    db.refresh(db_boutique)
+    db_boutique.save()
     return db_boutique
 
 
-def get_boutique(db: Session, boutique_id: int):
-    return db.query(models.TypeUser).filter(models.User.id == boutique_id).first()
+def get_boutique(boutique_id: int):
+    return models.Boutique.filter(models.User.id == boutique_id).first()
 
 
-def get_boutiques(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.TypeUser).offset(skip).limit(limit).all()
+def get_boutiques(skip: int = 0, limit: int = 100):
+    return list(models.TypeUser.select().offset(skip).limit(limit))
 
-def delete_boutique(db: Session, boutique_id):
-    db_boutique = get_boutique(db, boutique_id)
-    db.delete(db_boutique)
-    db.commit()
-    return {"status": 200, "detail": "Suppression effectuée"}
+def delete_boutique(boutique_id):
+    n = models.Boutique.delete_by_id(boutique_id)
+    if (n>0):
+        return {"status": 200, "detail": "Suppression effectuée"}
+    return {"status": 500, "detail": "Aucune suppression n'a été effectuée"}
 # # ================ Boutique start ================ #
 
-# def get_items(db: Session, skip: int = 0, limit: int = 100):
+# def get_items(skip: int = 0, limit: int = 100):
 #     return db.query(models.Item).offset(skip).limit(limit).all()
 
 
-# def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
+# def create_user_item(item: schemas.ItemCreate, user_id: int):
 #     db_item = models.Item(**item.dict(), owner_id=user_id)
 #     db.add(db_item)
 #     db.commit()

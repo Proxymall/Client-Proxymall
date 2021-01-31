@@ -8,7 +8,6 @@ from pydantic.utils import GetterDict
 
 class PeeweeGetterDict(GetterDict):  # Necessaire seulement quand peewee est utilisé
     """ Permet a Peewee de pouvoir gerer les données de type `list()` et `List[]` """
-
     def get(self, key: Any, default: Any = None):
         res = getattr(self._obj, key, default)
         if isinstance(res, ModelSelect):
@@ -44,17 +43,16 @@ class UserBase(BaseModel):
 class TypeUser(TypeUserBase):
     id: Optional[int] = None
     isactive: Optional[bool] = None
-    class Config:
-        
-        getter_dict = PeeweeGetterDict
+    class  Config:
+        orm_mode = True        
         getter_dict = PeeweeGetterDict
  
 
 class Category(CategoryBase):
     id: Optional[int] = None
     parent_id: Optional[int] = None
-    class Config:
-        
+    class  Config:
+        orm_mode = True
         getter_dict = PeeweeGetterDict
 
 
@@ -68,10 +66,10 @@ class User(BaseModel):
     address: Optional[str] = None
     column: Optional[str] = None
     isactive: Optional[bool] = None
-    type_user_id: Optional[int] = None
-    type_user: Optional[TypeUser] = None
-    class Config:
-        
+    typeuser_id: Optional[int] = None
+    typeuser: Optional[TypeUser] = None
+    class  Config:
+        orm_mode = True
         getter_dict = PeeweeGetterDict
 
 
@@ -80,6 +78,6 @@ class Boutique(BoutiqueBase):
     category: Optional[Category] = None
     owner: Optional[User] = None
 
-    class Config:
-        
+    class  Config:
+        orm_mode = True
         getter_dict = PeeweeGetterDict

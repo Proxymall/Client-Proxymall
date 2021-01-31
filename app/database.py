@@ -42,14 +42,14 @@ class PeeweeConnectionState(peewee._ConnectionState):
 #     port="5432"
 # )
 
-db = MySQLConnectorDatabase(
-    "proxcbvs_proxymall",
-    user="proxcbvs_backend",
-    password="@Proxymall2020",
-    host="198.54.116.211",
-    port="3306"
-)
+# db = MySQLConnectorDatabase(
+#     "proxcbvs_proxymall",
+#     user="proxcbvs_backend",
+#     password="@Proxymall2020",
+#     host="198.54.116.211",
+#     port="3306"
+# )
 
-# db = peewee.SqliteDatabase("proxymall.db", check_same_thread=False)
+db = peewee.SqliteDatabase("proxymall.db", check_same_thread=False)
 
 db._state = PeeweeConnectionState()

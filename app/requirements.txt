@@ -1,4 +1,4 @@
-fastapi[all]
+fastapi
 sqlalchemy
 peewee
 python-jose[cryptography]

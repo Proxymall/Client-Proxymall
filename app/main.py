@@ -29,10 +29,6 @@ database.db.create_tables([
     models.Order,
     models.Boutique,
     models.TypeUser,
-    # models.Phase,
-    # models.Historique,
-    # models.Fichier,
-    # models.Commentaire,
     # models.Projet.intervenants.get_through_model()
 ])
 database.db.close()
@@ -140,7 +136,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
-    if not current_user.is_active:
+    if not current_user.isactive:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 # ============== Dependency end ============== #
@@ -182,10 +178,10 @@ async def auth(request: Request):
 
 
 # =============== generate Token =============== #
-@app.post("/token", response_model=Token, tags=["User"])
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+@app.post("/token", response_model=Token, tags=["User"], dependencies=[Depends(get_db)])
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(
-        form_data.username, form_data.password, db)
+        form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -201,32 +197,33 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 # ============== User start ============== #
-@app.post("/users/", response_model=schemas.User, tags=["User"])
-async def create_user(user: schemas.UserBase = Body(..., embed=True), db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    db_user1 = crud.get_user_by_username(db, username=user.username)
+@app.post("/users/", response_model=schemas.User, tags=["User"], dependencies=[Depends(get_db)])
+async def create_user(user: schemas.UserBase = Body(..., embed=True)):
+    db_user = crud.get_user_by_email(email=user.email)
+    db_user1 = crud.get_user_by_username(username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Cet Email existe deja")
     if db_user1:
         raise HTTPException(
             status_code=400, detail="Ce nom d'utilisateur existe deja")
-    return crud.create_user(db=db, user=user)
+    return crud.create_user(user=user)
 
 
-@app.get("/users/me/", response_model=schemas.User, tags=["User"])
+@app.get("/users/me/", response_model=schemas.User, tags=["User"], dependencies=[Depends(get_db)])
 async def read_users_me(current_user: schemas.UserBase = Depends(get_current_active_user)):
     return current_user
 
 
-@app.get("/users/", response_model=List[schemas.User], tags=["User"])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), auth_user: schemas.User = Depends(get_current_active_user)):
-    users = crud.get_users(db, skip, limit)
+@app.get("/users/", response_model=List[schemas.User], tags=["User"], dependencies=[Depends(get_db), Depends(get_current_active_user)])
+def read_users(skip: int = 0, limit: int = 100 ):
+# def read_users(skip: int = 0, limit: int = 100 , auth_user: schemas.User = Depends(get_current_active_user)):
+    users = crud.get_users(skip=skip, limit=limit)
     return users
 
 
-@app.get("/users/{user_id}", response_model=schemas.User, tags=["User"])
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
+@app.get("/users/{user_id}", response_model=schemas.User, tags=["User"], dependencies=[Depends(get_db)])
+def read_user(user_id: int):
+    db_user = crud.get_user(user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
