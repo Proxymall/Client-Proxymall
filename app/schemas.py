@@ -38,6 +38,8 @@ class UserBase(BaseModel):
     password: Optional[str] = None
     address: Optional[str] = None
     column: Optional[str] = None
+    typeuser_id: Optional[int] = None
+    
 
 
 class TypeUser(TypeUserBase):

@@ -58,7 +58,9 @@ def create_user(user: schemas.UserBase):
         username = user.username,
         email = user.email,
         hashed_password=password,
-        column=user.column
+        column=user.column,
+        isactive=True,
+        typeuser_id = user.typeuser_id
     )
     db_user.save()
     return db_user

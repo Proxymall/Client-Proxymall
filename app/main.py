@@ -66,9 +66,8 @@ def get_db(db_state=Depends(reset_db_state)):
 
 
 class Token(BaseModel):
-    token: str
+    access_token: str
     token_type: str
-    user: Optional[schemas.User] = None
 
 
 class TokenData(BaseModel):
@@ -142,6 +141,7 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
     if not current_user.isactive:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
 # ============== Dependency end ============== #
 
 # Route methods start
@@ -192,10 +192,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token(
+    access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"token": token, "token_type": "Bearer ", "user":user}
+    return {"access_token": access_token, "token_type": "Bearer", "user":user}
 # =============== generate token =============== #
 
 
