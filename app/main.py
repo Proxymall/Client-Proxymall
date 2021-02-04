@@ -1,3 +1,4 @@
+from fastapi.encoders import jsonable_encoder
 import uvicorn
 from pydantic import BaseModel
 from passlib.context import CryptContext
@@ -36,7 +37,8 @@ database.db.close()
 app = FastAPI(
     title="ProxyMall API",
     version="0.1",
-    description="Api concu Pour servir de backend au projet ProxyMall"
+    description="Api concu Pour servir de backend au projet ProxyMall",
+    debug=True
 )
 app.add_middleware(SessionMiddleware, secret_key="secret-string")
 
@@ -64,8 +66,9 @@ def get_db(db_state=Depends(reset_db_state)):
 
 
 class Token(BaseModel):
-    access_token: str
+    token: str
     token_type: str
+    user: Optional[schemas.User] = None
 
 
 class TokenData(BaseModel):
@@ -189,10 +192,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
+    token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"token": token, "token_type": "Bearer ", "user":user}
 # =============== generate token =============== #
 
 
@@ -227,10 +230,26 @@ def read_user(user_id: int):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+
+@app.put("/users/{id}", response_model=schemas.User, tags=["User"], dependencies=[Depends(get_db)])
+def update_users(id: int, user: schemas.UserUpdate):
+    """
+    Supporte la mise a jour partiel. C'est a dire que vous n'etes pas obligé de renseigner tout les champs.
+    Mettez a jour juste les données a modifier et ignorer les autres va parfaitement marcher
+    """
+    stored_data = jsonable_encoder(crud.get_user(id))
+    if stored_data is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    sotred_model = schemas.UserUpdate(**stored_data["__data__"])
+    updated_data = user.dict(
+        exclude_unset=True, exclude_none=True, exclude_defaults=True)
+    updated_user = sotred_model.copy(update=updated_data)
+    return crud.update_user(id, updated_user)
 # ============== User end ============== #
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 # uvicorn main:app --host 0.0.0.0 --port 80

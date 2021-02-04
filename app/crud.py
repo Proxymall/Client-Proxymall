@@ -1,3 +1,5 @@
+from fastapi.encoders import jsonable_encoder
+from app import main
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -32,7 +34,7 @@ def delete_type_user(type_user_id):
 # ================ User start ================ #
 def get_user(user_id: int):
     return models.User.filter(models.User.id == user_id).first()
-    return models.User.filter(models.User.id == user_id).first()
+    # return models.User.filter(models.User.id == user_id).first()
 
 
 def get_user_by_email(email: str):
@@ -58,9 +60,32 @@ def create_user(user: schemas.UserBase):
         hashed_password=password,
         column=user.column
     )
-
     db_user.save()
     return db_user
+
+
+def update_user(user_id: int, db_user: schemas.UserUpdate):
+    # saved = jsonable_encoder(get_user(user_id))
+    # print(saved['__data__']['hashed_password'])
+    # # saved['__data__']['hashed_password']
+    # if (main.verify_password(plain_password=db_user.password, hashed_password=saved['__data__']['hashed_password'])):
+    #     return {"status":500, "detail":"Votre nouveau mot de passe est identique a l'ancien"}
+    # else:
+    # password = pwd_context.hash(db_user.password)
+    q = (models.User.update({
+        models.User.first_name: db_user.first_name,
+        models.User.last_name: db_user.last_name,
+        models.User.email: db_user.email,
+        models.User.address: db_user.address,
+        models.User.typeuser_id: db_user.typeuser_id,
+        models.User.username: db_user.username,
+        # models.User.hashed_password: password,
+        models.User.column: db_user.username,
+        models.User.isactive: db_user.isactive,
+    }).where(models.User.id == user_id))
+    nb_row = q.execute()
+    return get_user(user_id)
+
 
 def delete_user(user_id):
     n = models.User.delete_by_id(user_id)

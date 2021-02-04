@@ -72,6 +72,20 @@ class User(BaseModel):
         orm_mode = True
         getter_dict = PeeweeGetterDict
 
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None 
+    username: Optional[str] = None
+    password: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    column: Optional[str] = None
+    typeuser_id: Optional[int] = None
+    isactive: Optional[bool] = None
+    class  Config:
+        orm_mode = True
+        getter_dict = PeeweeGetterDict
+
 
 class Boutique(BoutiqueBase):
     id: Optional[int] = None
